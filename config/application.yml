@@ -1,0 +1,6 @@
+# Config base compartida como referencia (cada servicio Spring Boot
+# sobreescribe estos valores vía variables de entorno, ver docker-compose.yml).
+common:
+  monitor_url: http://monitor:8500
+  load_balancer_url: http://load-balancer:9000
+  circuit_breaker_url: http://circuit-breaker:9100

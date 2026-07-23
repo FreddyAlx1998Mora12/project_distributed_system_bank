@@ -1,0 +1,41 @@
+# Definición lógica del cluster de 5 máquinas sobre red estática personalizada.
+network:
+  subnet: 192.168.100.0/24
+  driver: bridge
+
+machines:
+  - id: machine-1
+    ip: 192.168.100.10
+    hostname: gateway-lb-cb
+    services: [api-gateway, load-balancer, circuit-breaker]
+
+  - id: machine-2
+    ip: 192.168.100.20
+    hostname: node-2
+    services: [transaction-service, postgresql-primary]
+    db_role: primary
+
+  - id: machine-3
+    ip: 192.168.100.21
+    hostname: node-3
+    services: [transaction-service, postgresql-replica]
+    db_role: replica
+
+  - id: machine-4
+    ip: 192.168.100.22
+    hostname: node-4
+    services: [transaction-service, postgresql-replica]
+    db_role: replica
+
+  - id: machine-5
+    ip: 192.168.100.30
+    hostname: monitor
+    services: [monitor]
+
+quorum:
+  cluster_nodes: [node-2, node-3, node-4]
+  quorum_size: 2
+
+heartbeat:
+  interval_ms: 2000
+  timeout_seconds: 6
