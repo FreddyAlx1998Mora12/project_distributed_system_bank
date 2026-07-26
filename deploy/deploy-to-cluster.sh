@@ -43,29 +43,25 @@ for m in machine-3 machine-4; do
     "
 done
 
-echo "==> Iniciando microservicios Java (Máquinas 2, 3, 4)"
+echo "==> Iniciando Quorum Monitor (Máquina 5)"
+ssh "$REMOTE_USER@${MACHINES[machine-5]}" "
+    nohup java -jar $REMOTE_APP_DIR/quorum-monitor-service.jar --server.port=8500 > $REMOTE_APP_DIR/monitor.log 2>&1 &
+"
+
+echo "==> Iniciando microservicios de transacción (Máquinas 2, 3, 4)"
 for m in machine-2 machine-3 machine-4; do
     ip="${MACHINES[$m]}"
     node_id="node-${m##*-}"
     ssh "$REMOTE_USER@$ip" "
         nohup java -jar $REMOTE_APP_DIR/transaction-service.jar \
-            --NODE_ID=$node_id > $REMOTE_APP_DIR/service.log 2>&1 &
+            --NODE_ID=$node_id --MONITOR_URL=http://192.168.100.30:8500 > $REMOTE_APP_DIR/service.log 2>&1 &
     "
 done
 
-echo "==> Iniciando Monitor (Máquina 5)"
-ssh "$REMOTE_USER@${MACHINES[machine-5]}" "
-    cd $REMOTE_APP_DIR/monitor && pip install -r requirements.txt &&
-    nohup uvicorn main:app --host 0.0.0.0 --port 8500 > monitor.log 2>&1 &
-"
-
-echo "==> Iniciando Gateway + Load Balancer + Circuit Breaker (Máquina 1)"
+echo "==> Iniciando Gateway + Load Balancer (Máquina 1)"
 ssh "$REMOTE_USER@${MACHINES[machine-1]}" "
-    nohup java -jar $REMOTE_APP_DIR/api-gateway.jar > gateway.log 2>&1 &
-    cd $REMOTE_APP_DIR/load-balancer && pip install -r requirements.txt &&
-    nohup uvicorn main:app --host 0.0.0.0 --port 9000 > lb.log 2>&1 &
-    cd $REMOTE_APP_DIR/circuit-breaker && pip install -r requirements.txt &&
-    nohup uvicorn main:app --host 0.0.0.0 --port 9100 > cb.log 2>&1 &
+    nohup java -jar $REMOTE_APP_DIR/load-balancer-service.jar --server.port=9000 --monitor.url=http://192.168.100.30:8500 > $REMOTE_APP_DIR/lb.log 2>&1 &
+    nohup java -jar $REMOTE_APP_DIR/api-gateway.jar --server.port=8080 --loadbalancer.url=http://localhost:9000 > $REMOTE_APP_DIR/gateway.log 2>&1 &
 "
 
 echo "==> Despliegue completo. Verificar con: curl http://192.168.100.10:8080/actuator/health"

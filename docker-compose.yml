@@ -16,7 +16,7 @@ services:
 
   # ---------- MÁQUINA 1: 192.168.100.10 ----------
   api-gateway:
-    build: ./services/api-gateway
+    build: ./microservices/apigateway
     hostname: api-gateway
     networks:
       banking-net:
@@ -28,22 +28,16 @@ services:
     depends_on: [load-balancer]
 
   load-balancer:
-    build: ./services/load-balancer
+    build: ./microservices/load-balancer-service
     hostname: load-balancer
     networks:
       banking-net:
         ipv4_address: 192.168.100.11
+    ports:
+      - "9000:9000"
     environment:
-      CIRCUIT_BREAKER_URL: http://circuit-breaker:9100
       MONITOR_URL: http://monitor:8500
-    depends_on: [circuit-breaker]
-
-  circuit-breaker:
-    build: ./services/circuit-breaker
-    hostname: circuit-breaker
-    networks:
-      banking-net:
-        ipv4_address: 192.168.100.12
+    depends_on: [monitor]
 
   # ---------- MÁQUINA 2: 192.168.100.20 (PRIMARY) ----------
   postgres-primary:
@@ -63,7 +57,7 @@ services:
       - ./config/postgresql/primary.conf:/etc/postgresql/primary.conf:ro
 
   transaction-service-2:
-    build: ./services/transaction-service
+    build: ./microservices/transaction-service
     hostname: transaction-service-2
     networks:
       banking-net:
@@ -98,7 +92,7 @@ services:
     depends_on: [postgres-primary]
 
   transaction-service-3:
-    build: ./services/transaction-service
+    build: ./microservices/transaction-service
     hostname: transaction-service-3
     networks:
       banking-net:
@@ -133,7 +127,7 @@ services:
     depends_on: [postgres-primary]
 
   transaction-service-4:
-    build: ./services/transaction-service
+    build: ./microservices/transaction-service
     hostname: transaction-service-4
     networks:
       banking-net:
@@ -153,7 +147,7 @@ services:
 
   # ---------- MÁQUINA 5: 192.168.100.30 ----------
   monitor:
-    build: ./services/monitor
+    build: ./microservices/quorum-monitor-service
     hostname: monitor
     networks:
       banking-net:

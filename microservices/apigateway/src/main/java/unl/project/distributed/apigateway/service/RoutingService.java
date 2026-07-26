@@ -30,30 +30,22 @@ public class RoutingService {
         log.info("Gateway → Load Balancer [CB: lb-calls]");
         log.info("Levantando APIGateway, y Erutando operacion {} al LoadBalancer", operation);
         
-        try {
-            Map<String, Object> response = restClient.post()
-                    .uri(loadBalancerUrl + "/route/" + operation)
-                    .body(body)
-                    .retrieve()
-                    .body(Map.class);
-            
-            log.info("Respuesta exitosa del Load Balancer para operación: {}", operation);
-            return response;
-            
-        } catch (RestClientException e) {
-            log.error("Error al comunicarse con Load Balancer: {}", e.getMessage());
-            return Map.of(
-                "status", "ERROR",
-                "message", "Servicio de enrutamiento no disponible: " + e.getMessage()
-            );
-        }
+        // Al no haber try-catch, si el Load Balancer cae, restClient lanza una
+        // excepción.
+        // Resilience4j la detecta, incrementa el contador de fallos y ejecuta
+        // routeFallback.
+        return restClient.post()
+                .uri(loadBalancerUrl + "/route/" + operation)
+                .body(body)
+                .retrieve()
+                .body(Map.class);
     }
 
     // Fallback cuando el Load Balancer no responde, fijense en la notacion @cricuitBreaker
     public Map<String, Object> routeFallback(String operation,
             Map<String, Object> body,
             Throwable t) {
-        log.error("Circuit Breaker [lb-calls] ABIERTO - Load Balancer no disponible");
+        log.error("Circuit Breaker [lb-calls] ACTIVO/ABIERTO para la operacion {}. Causa: {}",operation, t.getMessage());
         return Map.of(
                 "status", "ERROR",
                 "message", "Sistema temporalmente no disponible. Intente más tarde.");
