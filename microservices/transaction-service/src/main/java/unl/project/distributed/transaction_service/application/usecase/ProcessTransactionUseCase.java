@@ -1,6 +1,7 @@
 package unl.project.distributed.transaction_service.application.usecase;
 
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import unl.project.distributed.transaction_service.application.dto.TransactionRequest;
@@ -28,12 +29,15 @@ public class ProcessTransactionUseCase {
     private final WriteAheadLog wal;
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
+    private final String nodeId;
 
     public ProcessTransactionUseCase(WriteAheadLog wal, AccountRepository accountRepository,
-                                      TransactionRepository transactionRepository) {
+                                      TransactionRepository transactionRepository,
+                                      @Value("${node.id}") String nodeId) {
         this.wal = wal;
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
+        this.nodeId = nodeId;
     }
 
     public TransactionResponse deposit(TransactionRequest req) {
@@ -64,13 +68,11 @@ public class ProcessTransactionUseCase {
             wal.markCommitted(seq, cmd);
             tx.markCommitted();
             transactionRepository.save(tx);
-            return new TransactionResponse(tx.getTransactionId(), "COMMITTED", "Transacción aplicada correctamente");
+            return new TransactionResponse(tx.getTransactionId(), "COMMITTED", "Transacción aplicada correctamente", nodeId);
         } catch (RuntimeException ex) {
             tx.markFailed();
             transactionRepository.save(tx);
-            // Nota: no se marca COMMITTED en el WAL -> el recovery NO reaplicará una operación fallida
-            // porque commandFactory reconstruiría el mismo resultado fallido (ej. fondos insuficientes es determinista).
-            return new TransactionResponse(tx.getTransactionId(), "FAILED", ex.getMessage());
+            return new TransactionResponse(tx.getTransactionId(), "FAILED", ex.getMessage(), nodeId);
         }
     }
 }

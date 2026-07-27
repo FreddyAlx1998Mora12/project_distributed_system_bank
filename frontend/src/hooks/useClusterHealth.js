@@ -64,19 +64,17 @@ export default function useClusterHealth(interval = 5000) {
   }, [fetchHealth]);
 
   // Determinar si el sistema está degradado
-  const isDegraded = health?.status === 'DEGRADED' || 
-                     (health?.activeNodes && health?.totalNodes && 
-                      health.activeNodes < health.totalNodes);
+  const activeNodes = health?.nodes?.filter(n => n.health === 'UP').length || 0;
+  const totalNodes = health?.totalNodes || health?.nodes?.length || 0;
+
+  const isDegraded = (health?.hasQuorum === false) || 
+                     (activeNodes > 0 && activeNodes < totalNodes);
 
   // Determinar si hay quorum
-  const hasQuorum = health?.activeNodes >= 3;
+  const hasQuorum = health?.hasQuorum || false;
 
   // Nodo líder actual
-  const leader = health?.leader || null;
-
-  // Nodos activos vs totales
-  const activeNodes = health?.activeNodes || 0;
-  const totalNodes = health?.totalNodes || 0;
+  const leader = health?.leaderId || null;
 
   return {
     health,

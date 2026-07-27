@@ -38,6 +38,6 @@ public class TransactionController {
     }
 
     private ResponseEntity<TransactionResponse> respond(TransactionResponse resp) {
-        return "COMMITTED".equals(resp.status()) ? ResponseEntity.ok(resp) : ResponseEntity.unprocessableEntity().body(resp);
+        return ResponseEntity.ok(resp);
     }
 }

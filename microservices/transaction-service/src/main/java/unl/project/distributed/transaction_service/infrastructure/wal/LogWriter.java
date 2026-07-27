@@ -1,7 +1,5 @@
 package unl.project.distributed.transaction_service.infrastructure.wal;
 
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
@@ -15,7 +13,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * Es la garantía de "Write-Ahead": ningún commit en BD ocurre sin que
  * esto haya devuelto exitosamente primero.
  */
-@Component
 public class LogWriter {
 
     private final Path walFile;

@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 class BankingApi {
   
@@ -6,16 +6,15 @@ class BankingApi {
     const url = `${API_BASE}/api/transactions/${operation}`;
     
     const body = {
-      operation,
       amount: parseFloat(amount)
     };
     
     if (operation !== 'deposit') {
-      body.sourceAccount = sourceAccount;
+      body.fromAccountId = sourceAccount;
     }
     
     if (operation !== 'withdraw') {
-      body.targetAccount = targetAccount;
+      body.toAccountId = targetAccount;
     }
     
     const response = await fetch(url, {
@@ -32,7 +31,7 @@ class BankingApi {
   }
 
   async getClusterHealth() {
-    const response = await fetch(`${API_BASE}/api/cluster/health`);
+    const response = await fetch(`${API_BASE}/api/cluster/topology`);
     if (!response.ok) throw new Error('Error al obtener salud del cluster');
     return response.json();
   }
