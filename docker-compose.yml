@@ -14,7 +14,7 @@ networks:
 
 services:
 
-  # ---------- MÁQUINA 1: 192.168.100.10 ----------
+  # ---------- MÁQUINA 1: 192.168.100.10 y 192.168.100.11 ----------
   api-gateway:
     build: ./microservices/apigateway
     hostname: api-gateway
@@ -39,7 +39,7 @@ services:
       MONITOR_URL: http://monitor:8500
     depends_on: [monitor]
 
-  # ---------- MÁQUINA 2: 192.168.100.20 (PRIMARY) ----------
+  # ---------- MÁQUINA 2: 192.168.100.20 (DB) y 192.168.100.21 (App) ----------
   postgres-primary:
     build: ./docker/postgres
     hostname: postgres-primary
@@ -75,7 +75,7 @@ services:
       - wal_node2:/data/wal
     depends_on: [postgres-primary]
 
-  # ---------- MÁQUINA 3: 192.168.100.22 (REPLICA 1) ----------
+  # ---------- MÁQUINA 3: 192.168.100.22 (DB) y 192.168.100.23 (App) ----------
   postgres-replica-1:
     build: ./docker/postgres
     hostname: postgres-replica-1
@@ -110,7 +110,7 @@ services:
       - wal_node3:/data/wal
     depends_on: [postgres-replica-1]
 
-  # ---------- MÁQUINA 4: 192.168.100.24 (REPLICA 2) ----------
+  # ---------- MÁQUINA 4: 192.168.100.24 (DB) y 192.168.100.25 (App) ----------
   postgres-replica-2:
     build: ./docker/postgres
     hostname: postgres-replica-2
