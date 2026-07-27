@@ -1,7 +1,6 @@
 // src/components/TransactionForm.jsx (actualizado)
 import { useState } from 'react';
 import { ArrowDown, ArrowUp, ArrowLeftRight, Send, Loader2 } from 'lucide-react';
-import useTransactions from '../hooks/useTransactions';
 
 const OPERATIONS = [
   { type: 'deposit', icon: ArrowDown, label: 'Depósito', color: 'green' },
@@ -9,14 +8,13 @@ const OPERATIONS = [
   { type: 'transfer', icon: ArrowLeftRight, label: 'Transferencia', color: 'blue' },
 ];
 
-export default function TransactionForm() {
+export default function TransactionForm({ txHook }) {
   const [operation, setOperation] = useState('deposit');
   const [amount, setAmount] = useState('');
   const [sourceAccount, setSourceAccount] = useState('');
   const [targetAccount, setTargetAccount] = useState('');
 
-  // Usar el hook de transacciones
-  const { loading, lastTransaction, processTransaction, error } = useTransactions();
+  const { loading, lastTransaction, processTransaction, error } = txHook;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,7 +27,7 @@ export default function TransactionForm() {
     });
 
     // Limpiar formulario si fue exitoso
-    if (lastTransaction?.status === 'SUCCESS') {
+    if (lastTransaction?.status === 'COMMITTED') {
       setAmount('');
       setSourceAccount('');
       setTargetAccount('');
@@ -87,7 +85,7 @@ export default function TransactionForm() {
             label="Cuenta Origen"
             value={sourceAccount}
             onChange={setSourceAccount}
-            placeholder="ACC-001"
+            placeholder="ACC-1001"
             disabled={loading}
           />
         )}
@@ -97,7 +95,7 @@ export default function TransactionForm() {
             label="Cuenta Destino"
             value={targetAccount}
             onChange={setTargetAccount}
-            placeholder="ACC-002"
+            placeholder="ACC-2002"
             disabled={loading}
           />
         )}
@@ -138,7 +136,7 @@ export default function TransactionForm() {
       {lastTransaction && (
         <div className={`
           mt-4 p-4 rounded-lg border
-          ${lastTransaction.status === 'SUCCESS' 
+          ${lastTransaction.status === 'COMMITTED' 
             ? 'bg-green-50 border-green-200' 
             : lastTransaction.status === 'PENDING' 
               ? 'bg-yellow-50 border-yellow-200' 

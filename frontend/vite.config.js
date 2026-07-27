@@ -10,7 +10,21 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      '/api': {
+      '/api/transactions': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
+      },
+      '/api/cluster': {
+        target: 'http://localhost:8500',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/cluster/, '/cluster')
+      },
+      '/api/circuit-breakers': {
+        target: 'http://localhost:9000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      },
+      '/health': {
         target: 'http://localhost:8080',
         changeOrigin: true
       }

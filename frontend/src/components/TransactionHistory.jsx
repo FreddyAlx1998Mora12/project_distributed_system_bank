@@ -1,5 +1,5 @@
 // src/components/TransactionHistory.jsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   Clock, 
   Search, 
@@ -14,7 +14,6 @@ import {
   XCircle,
   Clock3
 } from 'lucide-react';
-import { bankingApi } from '../api/bankingApi';
 
 /**
  * Componente que muestra el historial de transacciones realizadas
@@ -40,66 +39,28 @@ const OPERATION_LABELS = {
 };
 
 const STATUS_ICONS = {
-  SUCCESS: CheckCircle,
+  COMMITTED: CheckCircle,
+  FAILED: XCircle,
   PENDING: Clock3,
-  ERROR: XCircle,
 };
 
 const STATUS_COLORS = {
-  SUCCESS: 'text-green-500',
+  COMMITTED: 'text-green-500',
+  FAILED: 'text-red-500',
   PENDING: 'text-yellow-500',
-  ERROR: 'text-red-500',
 };
 
-export default function TransactionHistory() {
-  const [transactions, setTransactions] = useState([]);
+export default function TransactionHistory({ transactions, clearHistory }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all'); // all, deposit, withdraw, transfer
   const [sortOrder, setSortOrder] = useState('desc'); // desc, asc
   const [expandedTx, setExpandedTx] = useState(null);
 
-  // Cargar transacciones guardadas en localStorage al iniciar
-  useEffect(() => {
-    const saved = localStorage.getItem('banking_transactions');
-    if (saved) {
-      try {
-        setTransactions(JSON.parse(saved));
-      } catch (e) {
-        console.error('Error al cargar historial:', e);
-      }
+  const handleClearHistory = () => {
+    if (confirm('¿Estás seguro de eliminar todo el historial?')) {
+      clearHistory();
     }
-  }, []);
-
-  // Guardar transacciones en localStorage cuando cambien
-  useEffect(() => {
-    if (transactions.length > 0) {
-      localStorage.setItem('banking_transactions', JSON.stringify(transactions));
-    }
-  }, [transactions]);
-
-  /**
-   * Agregar una nueva transacción al historial
-   * Se llama desde TransactionForm cuando se completa una transacción
-   */
-  const addTransaction = (transaction) => {
-    const newTx = {
-      id: transaction.transactionId || Date.now().toString(),
-      timestamp: new Date().toISOString(),
-      operation: transaction.operation || 'unknown',
-      amount: transaction.amount || 0,
-      sourceAccount: transaction.sourceAccount || 'N/A',
-      targetAccount: transaction.targetAccount || 'N/A',
-      status: transaction.status || 'PENDING',
-      node: transaction.node || 'N/A',
-      message: transaction.message || '',
-      rawResponse: transaction
-    };
-
-    setTransactions(prev => [newTx, ...prev]);
   };
-
-  // Exponer addTransaction al componente padre
-  // TransactionHistory ref se puede usar desde TransactionForm
 
   // Filtrar y ordenar transacciones
   const filteredTransactions = transactions
@@ -142,13 +103,6 @@ export default function TransactionHistory() {
     navigator.clipboard.writeText(text);
   };
 
-  const clearHistory = () => {
-    if (confirm('¿Estás seguro de eliminar todo el historial?')) {
-      setTransactions([]);
-      localStorage.removeItem('banking_transactions');
-    }
-  };
-
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       {/* Cabecera */}
@@ -164,7 +118,7 @@ export default function TransactionHistory() {
         </div>
         {transactions.length > 0 && (
           <button
-            onClick={clearHistory}
+            onClick={handleClearHistory}
             className="text-xs text-red-500 hover:text-red-700"
           >
             Limpiar

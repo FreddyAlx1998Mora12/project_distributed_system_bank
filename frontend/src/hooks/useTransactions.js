@@ -172,7 +172,7 @@ export default function useTransactions() {
       
       setLastTransaction(txRecord);
       
-      if (response.status === 'SUCCESS') {
+      if (response.status === 'COMMITTED') {
         toast.success(`Transacción completada: ${operation}`);
       } else if (response.status === 'PENDING') {
         toast(`${response.message || 'Transacción pendiente'}`, { icon: '⏳' });
